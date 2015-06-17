@@ -8,10 +8,6 @@
   "ignore": [
     ".*",
     "*.md",
-    "examples/",
-    "Makefile",
-    "package.json",
-    "script/",
-    "test/"
+    "package.json"
   ]
 }
