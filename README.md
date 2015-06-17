@@ -1,30 +1,30 @@
-# window.fetch polyfill
+# User Script-enhanced version of the HTML5 fetch() API
 
 The global `fetch` function is an easier way to make web requests and handle
-responses than using an XMLHttpRequest. This polyfill is written as closely as
-possible to the standard Fetch specification at https://fetch.spec.whatwg.org.
+responses than using an XMLHttpRequest. This implementation uses GM_xmlhttpRequest 
+as the underlying implementation, allowing user scripts to make cross-domain requests 
+using the fetch API.
+
+GM_fetch is based on [GitHub's fetch polyfill](https://github.com/github/fetch).
+
+## Compatibility
+
+This is a quick conversion, and is currently not well tested.
+
+- Only tested in TamperMonkey
+- Only basic GET with no custom headers/cookies/security/anything has been tested
+- request.credentials: 'include' isn't implemented - it might be effectively forced true, not sure
+
 
 ## Installation
 
-Available on [Bower](http://bower.io) as **fetch**.
+Save off the script somewhere, then include it in your user script with `@require`.  
+Make sure you have requested GM_xmlhttpRequest permissions.
 
-```sh
-$ bower install fetch
+```javascript
+// @grant GM_xmlhttpRequest
+// @require https://www.example.com/some/js/GM_fetch.js
 ```
-
-You'll also need a Promise polyfill for older browsers.
-
-```sh
-$ bower install es6-promise
-```
-
-This can also be installed with `npm`.
-
-```sh
-$ npm install whatwg-fetch --save
-```
-
-(For a node.js implementation, try [node-fetch](https://github.com/bitinn/node-fetch))
 
 ## Usage
 
@@ -152,9 +152,3 @@ response.headers['X-Request-URL'] = request.url
 If you want `response.url` to be reliable, you'll want to set this header. The
 day that you ditch this polyfill and use native fetch only, you can remove the
 header hack.
-
-## Browser Support
-
-![Chrome](https://raw.github.com/alrra/browser-logos/master/chrome/chrome_48x48.png) | ![Firefox](https://raw.github.com/alrra/browser-logos/master/firefox/firefox_48x48.png) | ![IE](https://raw.github.com/alrra/browser-logos/master/internet-explorer/internet-explorer_48x48.png) | ![Opera](https://raw.github.com/alrra/browser-logos/master/opera/opera_48x48.png) | ![Safari](https://raw.github.com/alrra/browser-logos/master/safari/safari_48x48.png)
---- | --- | --- | --- | --- |
-Latest ✔ | Latest ✔ | 9+ ✔ | Latest ✔ | 6.1+ ✔ |

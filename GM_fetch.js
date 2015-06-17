@@ -1,7 +1,9 @@
 (function() {
   'use strict';
+  
+  var Promise = window.Bluebird || window.Promise;
 
-  if (self.fetch) {
+  if (self.GM_fetch) {
     return
   }
 
@@ -229,9 +231,9 @@
     return form
   }
 
-  function headers(xhr) {
+  function headers(responseHeaders) {
     var head = new Headers()
-    var pairs = xhr.getAllResponseHeaders().trim().split('\n')
+    var pairs = responseHeaders.trim().split('\n')
     pairs.forEach(function(header) {
       var split = header.trim().split(':')
       var key = split.shift().trim()
@@ -264,7 +266,7 @@
   self.Request = Request;
   self.Response = Response;
 
-  self.fetch = function(input, init) {
+  self.GM_fetch = function(input, init) {
     // TODO: Request constructor should accept input, init
     var request
     if (Request.prototype.isPrototypeOf(input) && !init) {
@@ -274,57 +276,75 @@
     }
 
     return new Promise(function(resolve, reject) {
-      var xhr = new XMLHttpRequest()
+      var xhr_details = {};
+      var _parsedRespHeaders;
 
-      function responseURL() {
-        if ('responseURL' in xhr) {
-          return xhr.responseURL
+      function responseURL(finalUrl, rawRespHeaders, respHeaders) {
+        if (finalUrl) {
+          return finalUrl;
         }
 
         // Avoid security warnings on getResponseHeader when not allowed by CORS
-        if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
-          return xhr.getResponseHeader('X-Request-URL')
+        if (/^X-Request-URL:/m.test(rawRespHeaders)) {
+          return respHeaders.get('X-Request-URL')
         }
 
         return;
       }
+      
+      xhr_details.method = request.method;
+      
+      xhr_details.url = request.url;
+      
+      xhr_details.synchronous = false;
 
-      xhr.onload = function() {
-        var status = (xhr.status === 1223) ? 204 : xhr.status
+      xhr_details.onload = function(resp) {
+        var status = resp.status
         if (status < 100 || status > 599) {
           reject(new TypeError('Network request failed'))
           return
         }
+        
+        var rawRespHeaders = resp.responseHeaders;
+        _parsedRespHeaders = headers(rawRespHeaders);
+        
         var options = {
           status: status,
-          statusText: xhr.statusText,
-          headers: headers(xhr),
-          url: responseURL()
+          statusText: resp.statusText,
+          headers: _parsedRespHeaders,
+          url: responseURL(resp.finalUrl, rawRespHeaders, _parsedRespHeaders)
         }
-        var body = 'response' in xhr ? xhr.response : xhr.responseText;
+        var body = resp.responseText;
         resolve(new Response(body, options))
       }
 
-      xhr.onerror = function() {
+      xhr_details.onerror = function() {
         reject(new TypeError('Network request failed'))
       }
-
-      xhr.open(request.method, request.url, true)
-
+      
+      xhr_details.headers = {};
+      request.headers.forEach(function(value, name) {
+        xhr_details.headers[name] = value;
+      });
+      
+      if(typeof request._bodyInit !== 'undefined') {
+         xhr_details.data = request._bodyInit;
+      }
+      
+      GM_xmlhttpRequest(xhr_details);
+      
+      /*
+      // need to see if there's any way of doing this
       if (request.credentials === 'include') {
         xhr.withCredentials = true
       }
-
+      
+      GM_xmlhttpRequest has a responseType param, but this didn't seem to work, at least in TamperMonkey
       if ('responseType' in xhr && support.blob) {
         xhr.responseType = 'blob'
       }
-
-      request.headers.forEach(function(value, name) {
-        xhr.setRequestHeader(name, value)
-      })
-
-      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
+      */
     })
   }
-  self.fetch.polyfill = true
+  self.GM_fetch.polyfill = true
 })();
