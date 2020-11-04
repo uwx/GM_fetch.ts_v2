@@ -27,8 +27,10 @@ loader is used.
 
 ```javascript
 // @grant    GM_xmlhttpRequest
-// @require  https://www.example.com/some/js/GM_fetch.js
+// @require  https://raw.githubusercontent.com/uwx/GM_fetch.ts/master/dist/GM_fetch.js
 ```
+
+***Note:*** *This always links to the most up-to-date version, which may introduce breaking changes. Pinning to a commit, or self-hosting, is recommended.*
 
 Alternatively, for TypeScript projects, you can copy all the files in `src` to your project directly, and import
 `./GM_fetch.ts`.
