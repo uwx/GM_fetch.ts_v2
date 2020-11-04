@@ -1,69 +1,68 @@
-# User Script-enhanced version of the HTML5 fetch() API
+# GM_xmlhttpRequest powered implementation of window.fetch
 
-The global `fetch` function is an easier way to make web requests and handle
-responses than using an XMLHttpRequest. This implementation uses GM_xmlhttpRequest 
-as the underlying implementation, allowing user scripts to make cross-domain requests 
-using the fetch API.
+The global `fetch` function is an easier way to make web requests and handle responses than using an XMLHttpRequest.
+This implementation uses GM_xmlhttpRequest as the underlying implementation, allowing user scripts to make cross-domain
+requests using the fetch API.
 
+GM_fetch.ts differs from upstream GM_fetch by being rewritten in TypeScript and featuring a more consistent API.
 GM_fetch is based on [GitHub's fetch polyfill](https://github.com/github/fetch).
 
 ## Compatibility
 
-This is a quick conversion, and is currently not well tested.
-
-- Only tested in TamperMonkey
-- Only basic GET with no custom headers/cookies/security/anything has been tested
-- request.credentials: 'include' isn't implemented - it might be effectively forced true, not sure
-
+- GM_fetch.ts uses the legacy `GM_xmlhttpRequest` API as opposed to GreaseMonkey 4.0's `GM.xmlHttpRequest` for
+  compatibility with a wider variety of userscript engines. As such, while it is compatible with TamperMonkey,
+  ViolentMonkey, Scriptish, and legacy GreaseMonkey, it is unlikely to work on GreaseMonkey 4.0.
+- The default UTF-8 TextDecoder encoding is used for decoding response ArrayBuffer instances, with the exception of
+  `Response.text()`.
+- `Response.text()` is untested.
+- `Body.formData()` is unsupported for response bodies.
+- `request.credentials: 'include'` isn't explicitly implemented.
 
 ## Installation
 
-Save off the script somewhere, then include it in your user script with `@require`.  
-Make sure you have requested GM_xmlhttpRequest permissions.
+For regular userscripts, without any type of module bundler, you can add an `@require` clause to your script's header
+pointing to `dist/GM_fetch.js`. This is a UMD file that will adapt to either RequireJS, AMD, or Webpack, or export a
+GM_fetch variable to the current scope. The Headers, Request, and Response classes are only publicly visible if a module
+loader is used.
 
 ```javascript
-// @grant GM_xmlhttpRequest
-// @require https://www.example.com/some/js/GM_fetch.js
+// @grant    GM_xmlhttpRequest
+// @require  https://www.example.com/some/js/GM_fetch.js
 ```
+
+Alternatively, for TypeScript projects, you can copy all the files in `src` to your project directly, and import
+`./GM_fetch.ts`.
 
 ## Usage
 
-The `fetch` function supports any HTTP method. We'll focus on GET and POST
-example requests.
+The `fetch` function supports the GET, HEAD and POST HTTP methods, as with GM_xmlhttpRequest. Here are some examples.
 
 ### HTML
 
 ```javascript
 fetch('/users.html')
-  .then(function(response) {
-    return response.text()
-  }).then(function(body) {
-    document.body.innerHTML = body
-  })
+  .then(res => res.text())
+  .then(body => document.body.innerHTML = body);
 ```
 
 ### JSON
 
 ```javascript
 fetch('/users.json')
-  .then(function(response) {
-    return response.json()
-  }).then(function(json) {
-    console.log('parsed json', json)
-  }).catch(function(ex) {
-    console.log('parsing failed', ex)
-  })
+  .then(res => res.json())
+  .then(json => console.log('parsed json', json)
+  .catch(err => console.error('parsing failed', err);
 ```
 
 ### Response metadata
 
 ```javascript
-fetch('/users.json').then(function(response) {
-  console.log(response.headers.get('Content-Type'))
-  console.log(response.headers.get('Date'))
-  console.log(response.status)
-  console.log(response.statusText)
-})
+fetch('/users.json').then(response => {
+  console.log(response.headers.get('Content-Type'));
+  console.log(response.headers.get('Date'));
+  console.log(response.status);
+  console.log(response.statusText);
+});
 ```
 
 ### Post form
@@ -74,7 +73,7 @@ var form = document.querySelector('form')
 fetch('/query', {
   method: 'post',
   body: new FormData(form)
-})
+});
 ```
 
 ### Post JSON
@@ -90,22 +89,22 @@ fetch('/users', {
     name: 'Hubot',
     login: 'hubot',
   })
-})
+});
 ```
 
 ### File upload
 
 ```javascript
-var input = document.querySelector('input[type="file"]')
+const input = document.querySelector('input[type="file"]')
 
-var form = new FormData()
+const form = new FormData()
 form.append('file', input.files[0])
 form.append('user', 'hubot')
 
 fetch('/avatars', {
   method: 'post',
   body: form
-})
+});
 ```
 
 ### Success and error handlers
@@ -116,39 +115,15 @@ resolved only on successful, 200 level, status codes.
 
 ```javascript
 function status(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return response
+  if (response.ok) {
+    return response;
   }
-  throw new Error(response.statusText)
-}
-
-function json(response) {
-  return response.json()
+  throw new Error(response.statusText);
 }
 
 fetch('/users')
   .then(status)
-  .then(json)
-  .then(function(json) {
-    console.log('request succeeded with json response', json)
-  }).catch(function(error) {
-    console.log('request failed', error)
-  })
+  .then(res => res.json())
+  .then(json => console.log('request succeeded with json response', json))
+  .catch(err => console.log('request failed', err));
 ```
-
-### Response URL caveat
-
-The `Response` object has a URL attribute for the final responded resource.
-Usually this is the same as the `Request` url, but in the case of a redirect,
-its all transparent. Newer versions of XHR include a `responseURL` attribute
-that returns this value. But not every browser supports this. The compromise
-requires setting a special server side header to tell the browser what URL it
-just requested (yeah, I know browsers).
-
-``` ruby
-response.headers['X-Request-URL'] = request.url
-```
-
-If you want `response.url` to be reliable, you'll want to set this header. The
-day that you ditch this polyfill and use native fetch only, you can remove the
-header hack.
