@@ -22,8 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import type { GM_Types } from './tampermonkey-module';
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 type known = string | number | boolean | symbol | bigint | object | null | undefined;
 
@@ -328,7 +326,7 @@ export class Response extends Body {
     readonly statusText: string;
     readonly headers: Headers;
 
-    constructor(private readonly response: GM_Types.XHRResponse<unknown>) {
+    constructor(private readonly response: Tampermonkey.Response<unknown>) {
         super();
 
         this.type = 'default';
@@ -383,7 +381,7 @@ export function GM_fetch(input: string | Request, init?: RequestOptions): Promis
     }
 
     return new Promise((resolve, reject) => {
-        const xhrDetails: GM_Types.XHRDetails<unknown> = {};
+        const xhrDetails: Partial<Tampermonkey.Request<unknown>> = {};
 
         xhrDetails.method = request.method as 'GET' | 'HEAD' | 'POST';
         xhrDetails.responseType = 'arraybuffer'; // TODO does this affect presence of responseText?
@@ -404,22 +402,23 @@ export function GM_fetch(input: string | Request, init?: RequestOptions): Promis
         };
 
         // eslint-disable-next-line unicorn/prefer-add-event-listener
-        xhrDetails.onerror = (error: unknown) => {
-            reject(new TypeError('Network request failed', {
+        xhrDetails.onerror = error => {
+            reject(new TypeError(`Network request failed: ${error.error}`, {
                 cause: error
             }));
         };
 
-        xhrDetails.headers = {};
+        const headers: Record<string, string> = {};
         for (const [name, value] of request.headers) {
-            xhrDetails.headers[name] = value;
+            headers[name] = value;
         }
+        xhrDetails.headers = headers;
 
         if (typeof request.bodyRaw !== 'undefined') {
             xhrDetails.data = request.bodyRaw; // https://github.com/greasemonkey/greasemonkey/issues/1585 it just WORKS??
         }
 
-        GM_xmlhttpRequest(xhrDetails);
+        GM_xmlhttpRequest(xhrDetails as Tampermonkey.Request<unknown>);
 
         /*
         // need to see if there's any way of doing this
