@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
+        "outDir": "./dist",
         "sourceMap": true,
         "target": "ES2019",
         "strict": true,
@@ -10,6 +10,7 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "resolveJsonModule": true,
+        "declaration": true,
         "lib": [ "ESNext", "DOM", "DOM.Iterable" ]
     },
     "include": [

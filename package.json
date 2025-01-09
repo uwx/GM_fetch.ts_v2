@@ -1,13 +1,11 @@
 {
-  "name": "GM_fetch",
-  "version": "0.9.0+mm1",
+  "name": "@uwx/gm-fetch",
+  "version": "1.0.0",
   "main": "./dist/GM_fetch.js",
-  "types": "./GM_fetch.d.ts",
-  "repository": "uwx/GM_fetch",
+  "types": "./dist/GM_fetch.d.ts",
   "scripts": {
-    "build": "webpack",
-    "postbuild": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationDir ./ --skipLibCheck",
-    "watch": "webpack --watch"
+    "build": "tsc",
+    "watch": "tsc --watch"
   },
   "licenses": [
     {
@@ -16,11 +14,6 @@
     }
   ],
   "dependencies": {},
-  "devDependencies": {
-    "terser-webpack-plugin": "4",
-    "ts-loader": "^8.0.7",
-    "typescript": "^4.1.0-dev.20201027",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
-  }
+  "devDependencies": {},
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }

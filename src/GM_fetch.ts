@@ -22,7 +22,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import { GM_Types } from './tampermonkey-module';
+import type { GM_Types } from './tampermonkey-module';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type known = string | number | boolean | symbol | bigint | object | null | undefined;
@@ -55,9 +55,9 @@ export class Headers {
                 this.append(name, value);
             });
         } else if (headers) {
-            Object.getOwnPropertyNames(headers).forEach((name) => {
+            for (const name of Object.getOwnPropertyNames(headers)) {
                 this.append(name, headers[name]);
-            });
+            }
         }
     }
 
@@ -96,11 +96,11 @@ export class Headers {
 
     // eslint-disable-next-line unicorn/prevent-abbreviations
     forEach(callback: (value: string, name: string, thisArg: this) => void, thisArg?: unknown): void {
-        Object.getOwnPropertyNames(this.map).forEach((name) => {
-            this.map[name].forEach((value) => {
+        for (const name of Object.getOwnPropertyNames(this.map)) {
+            for (const value of this.map[name]) {
                 callback.call(thisArg, value, name, this);
-            });
-        });
+            }
+        }
     }
 
     *[Symbol.iterator](): Iterator<[name: string, value: string]> {
@@ -155,11 +155,14 @@ abstract class Body {
         const body = this.body;
         if (typeof body === 'string' || body instanceof ArrayBuffer) {
             return Promise.resolve(new Blob([body]));
-        } else if (body instanceof Blob) {
+        }
+        if (body instanceof Blob) {
             return Promise.resolve(body);
-        } else if (body instanceof FormData) {
+        }
+        if (body instanceof FormData) {
             return Promise.reject(new TypeError('A multipart FormData body cannot be read as a blob'));
-        } else if (body === undefined) {
+        }
+        if (body === undefined) {
             return Promise.reject(new Error('No body is present'));
         }
 
@@ -174,14 +177,18 @@ abstract class Body {
 
         const body = this.body;
         if (typeof body === 'string') {
-            return Promise.resolve(textEncoder.encode(body));
-        } else if (body instanceof ArrayBuffer) {
+            return Promise.resolve((textEncoder.encode(body) as Uint8Array<ArrayBuffer>).buffer);
+        }
+        if (body instanceof ArrayBuffer) {
             return Promise.resolve(body);
-        } else if (body instanceof Blob) {
+        }
+        if (body instanceof Blob) {
             return Promise.resolve(readBlobAsArrayBuffer(body));
-        } else if (body instanceof FormData) {
+        }
+        if (body instanceof FormData) {
             return Promise.reject(new TypeError('A multipart FormData body cannot be read as an arrayBuffer'));
-        } else if (body === undefined) {
+        }
+        if (body === undefined) {
             return Promise.reject(new Error('No body is present'));
         }
 
@@ -197,13 +204,17 @@ abstract class Body {
         const body = this.body;
         if (typeof body === 'string') {
             return Promise.resolve(body);
-        } else if (body instanceof ArrayBuffer) {
+        }
+        if (body instanceof ArrayBuffer) {
             return Promise.resolve(textDecoder.decode(body));
-        } else if (body instanceof Blob) {
+        }
+        if (body instanceof Blob) {
             return Promise.resolve(readBlobAsText(body));
-        } else if (body instanceof FormData) {
+        }
+        if (body instanceof FormData) {
             return Promise.reject(new TypeError('A multipart FormData body cannot be read as text'));
-        } else if (body === undefined) {
+        }
+        if (body === undefined) {
             return Promise.reject(new Error('No body is present'));
         }
 
@@ -219,13 +230,17 @@ abstract class Body {
         const body = this.body;
         if (typeof body === 'string') {
             return Promise.reject(new TypeError('Unsupported: Cannot parse FormData from a string body'));
-        } else if (body instanceof ArrayBuffer) {
+        }
+        if (body instanceof ArrayBuffer) {
             return Promise.reject(new TypeError('Unsupported: Cannot parse FormData from an ArrayBuffer body'));
-        } else if (body instanceof Blob) {
+        }
+        if (body instanceof Blob) {
             return Promise.reject(new TypeError('Unsupported: Cannot parse FormData from a Blob body'));
-        } else if (body instanceof FormData) {
+        }
+        if (body instanceof FormData) {
             return Promise.resolve(body);
-        } else if (body === undefined) {
+        }
+        if (body === undefined) {
             return Promise.reject(new Error('No body is present'));
         }
 
@@ -243,7 +258,7 @@ const methods = new Set(['GET', 'HEAD', 'POST']);
 function normalizeMethod(method: string): string {
     method = method.toUpperCase();
     if (!methods.has(method)) {
-        throw new Error('Unsupported HTTP method for GM_xmlhttpRequest: ' + method);
+        throw new Error(`Unsupported HTTP method for GM_xmlhttpRequest: ${method}`);
     }
     return method;
 }
@@ -296,12 +311,12 @@ export class Request extends Body {
 function headers(responseHeaders: string): Headers {
     const head = new Headers();
     const pairs = responseHeaders.trim().split('\n');
-    pairs.forEach(header => {
+    for (const header of pairs) {
         const split = header.trim().split(':');
         const key = split.shift()!.trim();
         const value = split.join(':').trim();
         head.append(key, value);
-    });
+    }
     return head;
 }
 
@@ -367,7 +382,7 @@ export default function GM_fetch(input: string | Request, init?: RequestOptions)
         throw new Error('Unsupported method for GM_xmlhttpRequest');
     }
 
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         const xhrDetails: GM_Types.XHRDetails<unknown> = {};
 
         xhrDetails.method = request.method as 'GET' | 'HEAD' | 'POST';
@@ -381,7 +396,7 @@ export default function GM_fetch(input: string | Request, init?: RequestOptions)
         xhrDetails.onload = resp => {
             const status = resp.status;
             if (status < 100 || status > 599) {
-                reject(new TypeError('Network request failed: Status code ' + status));
+                reject(new TypeError(`Network request failed: Status code ${status}`));
                 return;
             }
 
