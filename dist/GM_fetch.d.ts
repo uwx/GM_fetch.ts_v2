@@ -53,5 +53,5 @@ export declare class Response extends Body {
     protected get body(): string | ArrayBuffer | Blob | FormData | undefined;
     text(): Promise<string>;
 }
-export default function GM_fetch(input: string | Request, init?: RequestOptions): Promise<Response>;
+export declare function GM_fetch(input: string | Request, init?: RequestOptions): Promise<Response>;
 export {};

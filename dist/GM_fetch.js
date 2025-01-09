@@ -24,7 +24,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Response = exports.Request = exports.Headers = void 0;
-exports.default = GM_fetch;
+exports.GM_fetch = GM_fetch;
 function normalizeName(name) {
     if (typeof name !== 'string') {
         name = String(name);
