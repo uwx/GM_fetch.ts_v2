@@ -404,8 +404,10 @@ export function GM_fetch(input: string | Request, init?: RequestOptions): Promis
         };
 
         // eslint-disable-next-line unicorn/prefer-add-event-listener
-        xhrDetails.onerror = () => {
-            reject(new TypeError('Network request failed'));
+        xhrDetails.onerror = (error: unknown) => {
+            reject(new TypeError('Network request failed', {
+                cause: error
+            }));
         };
 
         xhrDetails.headers = {};

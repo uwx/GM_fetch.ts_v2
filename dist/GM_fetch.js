@@ -330,8 +330,10 @@ function GM_fetch(input, init) {
             resolve(new Response(resp));
         };
         // eslint-disable-next-line unicorn/prefer-add-event-listener
-        xhrDetails.onerror = () => {
-            reject(new TypeError('Network request failed'));
+        xhrDetails.onerror = (error) => {
+            reject(new TypeError('Network request failed', {
+                cause: error
+            }));
         };
         xhrDetails.headers = {};
         for (const [name, value] of request.headers) {
