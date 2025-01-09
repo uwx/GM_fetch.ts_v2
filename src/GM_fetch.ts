@@ -366,7 +366,7 @@ function responseURL(finalUrl: string, rawRespHeaders: string, respHeaders: Head
     return null;
 }
 
-export default function GM_fetch(input: string | Request, init?: RequestOptions): Promise<Response> {
+export function GM_fetch(input: string | Request, init?: RequestOptions): Promise<Response> {
     let request: Request;
     if (input instanceof Request) {
         if (init) {
