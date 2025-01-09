@@ -7,6 +7,7 @@
     "build": "tsc",
     "watch": "tsc --watch"
   },
+  "files": ["dist", "src", "LICENSE", "README.md"],
   "licenses": [
     {
       "type": "MIT",
