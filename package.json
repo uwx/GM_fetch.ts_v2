@@ -1,6 +1,6 @@
 {
   "name": "@uwx/gm-fetch",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "./dist/GM_fetch.js",
   "types": "./dist/GM_fetch.d.ts",
   "scripts": {
