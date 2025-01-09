@@ -403,7 +403,7 @@ export function GM_fetch(input: string | Request, init?: RequestOptions): Promis
 
         // eslint-disable-next-line unicorn/prefer-add-event-listener
         xhrDetails.onerror = error => {
-            reject(new TypeError(`Network request failed: ${error.error}`, {
+            reject(new TypeError(`Network request failed: ${error.status} ${error.statusText}`, {
                 cause: error
             }));
         };
